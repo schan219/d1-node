@@ -17,3 +17,135 @@
  */
 
 namespace d1
+
+concept Address {
+  o String street
+  o String house
+  o String city
+  o String province
+  o String country
+  o String zip
+}
+
+enum PersonalInfo {
+  o FIRST_NAME
+  o MIDDLE_NAME
+  o LAST_NAME
+  o ADDRESS
+  o DATE_OF_BIRTH
+  o SEX
+  o PERSONAL_HEALTH_NUMBER
+}
+
+enum VitalStats {
+  o AGE
+  o HEIGHT
+  o WEIGHT
+}
+
+enum CompareOp {
+  o GT
+  o LT
+  o LEQ
+  o GEQ
+  o EQ
+}
+
+enum DocumentType {
+  o PHOTO_BC_SERVICES_CARD
+}
+
+enum Sex {
+  o FEMALE
+  o MALE
+  o OTHER
+}
+
+concept AccessLevels {
+  o String[] l1
+  o String[] l0
+}
+
+participant Member identified by id {
+  o String id
+  o String email optional
+  o String name
+  o String publicKey
+  o String secretKey
+  o String biometrics optional
+  o AccessLevels accessLevels
+  o NumericRequest[] pendingNumericRequests
+  o QualitativeRequest[] pendingQualitativeRequests
+  o NumericRequest[] authorizedNumericRequests
+  o QualitativeRequest[] authorizedQualitativeRequests
+}
+
+participant ServiceProvider identified by id {
+  o String id
+  o String serviceName
+  o String publicKey
+  o String secretKey
+  o Address serviceAddress
+  o NumericRequest[] authorizedNumericRequests
+  o QualitativeRequest[] authorizedQualitativeRequests
+}
+
+abstract transaction MemberTransaction {
+  --> Member member
+  --> ServiceProvider serviceProvider
+  o NumericRequest[] numericRequests
+  o QualitativeRequest[] qualitativeRequests
+  o DateTime date
+}
+
+transaction AuthorizeAccess extends MemberTransaction {
+  o String memberSignature
+}
+
+transaction RevokeAccess extends MemberTransaction {
+}
+
+transaction RequestAccess extends MemberTransaction {
+  o String serviceProviderSignature
+}
+
+concept NumericRequest {
+  o VitalStats operand1 optional
+  o CompareOp op optional
+  o Double operand2 optional
+  o Boolean provideEntireNumber
+  o DateTime expiry optional
+  o Boolean authorized
+}
+
+concept QualitativeRequest {
+  o PersonalInfo pii
+  o DateTime expiry optional
+  o Boolean authorized
+}
+
+event AuthorizeAccessEvent {
+  --> Member member
+  --> ServiceProvider serviceProvider
+  o NumericRequest[] numericRequests
+  o QualitativeRequest[] qualitativeRequests
+  o DateTime date
+  o String memberSignature
+}
+
+event RevokeAccessEvent {
+  --> Member member
+  --> ServiceProvider serviceProvider
+  o NumericRequest[] numericRequests
+  o QualitativeRequest[] qualitativeRequests
+  o DateTime date
+}
+
+event RequestAccessEvent {
+  --> Member member
+  --> ServiceProvider serviceProvider
+  o NumericRequest[] numericRequests
+  o QualitativeRequest[] qualitativeRequests
+  o DateTime date
+  o String serviceProviderSignature
+}
